@@ -4,28 +4,12 @@ from math import sqrt
 
 class Calculations:
 
-    def __init__(self, flange, gasket, bolt):
-        self.flange = flange
+    def __init__(self, flange1, flange2, gasket, bolt):
+        self.flange1 = flange1
+        self.flange2 = flange2
         self.gasket = gasket
         self.bolt = bolt
 
-
-    # def get_gasket_params(self):
-    #     if self.gasket.type == 'flat':
-    #         if self.gasket.b_g >= 15:
-    #             b_0 = self.gasket.b_g
-    #         else:
-    #             b_0 = 3.8 * math.sqrt(self.gasket.b_g)
-    #         D_mg = self.gasket.D_cap - b_0
-    #
-    #     elif self.gasket.type == 'oval':
-    #         b_0 = self.gasket.b_g / 4
-    #         D_mg = (self.gasket.D_cap + self.gasket.d) / 2
-    #
-    #     else:
-    #         D_mg, b_0 = None, None
-    #
-    #     return D_mg, b_0
 
     # 5 Усилия, необходимые для смятия прокладки и обеспечения
     # герметичности фланцевого соединения
@@ -42,30 +26,30 @@ class Calculations:
 
     def get_force_moment_arms(self):
         # Плечи действия сил в болтах
-        if self.flange.type == 'weld_neck' or 'slip_on':
-            b = 0.5 * (self.flange.D_1 - self.gasket.get_gasket_params()[0])
-        elif self.flange.type == 'loose_rings':
-            a = 0.5 * (self.flange.D_1 - self.flange.D_s)
-            b = 0.5 * (self.flange.D_s - self.gasket.get_gasket_params()[0])
+        if self.flange1.type == 'weld_neck' or 'slip_on':
+            b = 0.5 * (self.flange1.D_1 - self.gasket.get_gasket_params()[0])
+        elif self.flange1.type == 'loose_rings':
+            a = 0.5 * (self.flange1.D_1 - self.flange1.D_s)
+            b = 0.5 * (self.flange1.D_s - self.gasket.get_gasket_params()[0])
 
-        if self.flange.type == 'weld_neck':
-            beta = self.flange.S_1 / self.flange.S_0
-            x = self.flange.l / (self.flange.d_r1 * self.flange.S_0)
+        if self.flange1.type == 'weld_neck':
+            beta = self.flange1.S_1 / self.flange1.S_0
+            x = self.flange1.l / (self.flange1.d_r1 * self.flange1.S_0)
             dzeta = 1 + (beta - 1) * x / (x + (1 + beta) / 4)
-            S_e = dzeta * self.flange.S_0
+            S_e = dzeta * self.flange1.S_0
         else:
-            S_e = self.flange.S_0
+            S_e = self.flange1.S_0
         # Плечо усилия от действия давления на фланец
-        e = 0.5 * (self.gasket.get_gasket_params()[0] - self.flange.d_r1 - S_e)
+        e = 0.5 * (self.gasket.get_gasket_params()[0] - self.flange1.d_r1 - S_e)
 
         return b, e
 
     def get_flange_connection_stiffness(self):
 
-        if self.flange.type == 'weld_neck' or 'slip_on':
+        if self.flange1.type == 'weld_neck' or 'slip_on':
 
-
-            gamma = 1 / (self.gasket.get_gasket_stiffness() + y_b*E_b20/E_b + (y_f1*E1_20/E_1 + y_f2*E2_20/E_2) * b * b)
+            gamma = 1 / (self.gasket.get_gasket_stiffness() + self.bolt.get_bolt_stiffness(self.flange1, self.flange2)*
+                         self.bolt.E_20/self.bolt.E + (y_f1*E1_20/E_1 + y_f2*E2_20/E_2) * b * b)
 
     # 6 Усилия в болтах(шпильках) фланцевого соединения
     # при затяжке и в рабочих условиях

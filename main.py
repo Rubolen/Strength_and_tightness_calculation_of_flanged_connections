@@ -13,7 +13,10 @@ gs1 = Gasket('flat', (db.get_element_from_table('GOST_15180_86_table_4', 'D_cap'
              )
 
 flange1 = Flange('weld-neck', ['DN_50','PN_40'])
-bolt = Bolt(1, flange1.Nom_bolt_diam_r1)
+flange2 = Flange('weld-neck', ['DN_50','PN_40'])
+bolt = Bolt(True, 'bolt', flange1)
+
+bolt.get_bolt_stiffness(flange1, flange2)
 
 print(bolt.f_b)
 print(gs1.get_gasket_stiffness())

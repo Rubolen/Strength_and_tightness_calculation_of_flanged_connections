@@ -33,6 +33,25 @@ class DatabaseConnection:
                 GOST_34233_4_2017_table_д1(ID INTEGER PRIMARY KEY AUTOINCREMENT, Bolt_type TEXT, M10 REAL, M12 REAL, M16 REAL, M20 REAL, M22 REAL, M24 REAL
                                 , M27 REAL, M30 REAL, M36 REAL, M42 REAL, M48 REAL, M52 REAL, M56 REAL, M60 REAL, M64 REAL, M68 REAL);''')
         self.conn.commit()
+
+        self.cursor.execute(''' CREATE TABLE IF NOT EXISTS
+                GOST_34233_4_2017_table_г1(ID INTEGER PRIMARY KEY AUTOINCREMENT, [Расчетная температура болтов (шпилек)] INTEGER, 
+            [35 40] INTEGER, [12Х18Н10Т, 10Х17Н13М2Т] INTEGER, [45Х14Н14В2М] INTEGER, [20X13] INTEGER, [35Х, 40Х ,38ХА ,37X12Н8Г8МБФ ,20ХНЗА] INTEGER, 
+            [30ХМА] INTEGER, [25X1МФ] INTEGER, [Алюминиевый сплав Д16] INTEGER);''')
+        self.conn.commit()
+
+        # self.cursor.execute('''INSERT INTO GOST_34233_4_2017_table_г1([Расчетная температура болтов (шпилек)],
+        #     [35 40], [12Х18Н10Т, 10Х17Н13М2Т], [45Х14Н14В2М], [20X13], [35Х, 40Х ,38ХА ,37X12Н8Г8МБФ ,20ХНЗА],
+        #     [30ХМА], [25X1МФ], [Алюминиевый сплав Д16])
+        #                        VALUES (20, 130, 110, 160, 195, 230, 230, 238, 83);''')
+        # self.conn.commit()
+
+        # self.cursor.execute('''INSERT INTO GOST_34233_4_2017_table_г1([Расчетная температура болтов (шпилек)],
+        #     [35 40], [12Х18Н10Т, 10Х17Н13М2Т], [45Х14Н14В2М], [20X13], [35Х, 40Х ,38ХА ,37X12Н8Г8МБФ ,20ХНЗА],
+        #     [30ХМА], [25X1МФ], [Алюминиевый сплав Д16])
+        #                        VALUES (100, 126, 105, 150, 182, 230, 230, 227, 80);''')
+        # self.conn.commit()
+
         # self.cursor.execute(''' CREATE TABLE IF NOT EXISTS
         #         Categories_storage(CategoryID INTEGER PRIMARY
         #         KEY AUTOINCREMENT, Category TEXT)''')
