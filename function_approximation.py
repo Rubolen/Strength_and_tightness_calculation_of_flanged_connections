@@ -4,14 +4,31 @@ import matplotlib.pyplot as plt
 
 class Approximation:
 
-    def __init__(self, beta, x):
-        self.beta = beta
+
+    def __init__(self, x, coef_type):
         self.x = x
-        self.graph_res_dict_T = self.get_graph_res('gost_graphs_T.csv')
+        self.coef_type = coef_type
+        self.graph_res_dict_T = self.get_graph_res(coef_type)
 
 
-    def get_graph_res(self, file_name):
+    def get_nearest_var(self):
+        if self.coef_type == 'V':
+            val_list = [0.1, 0.12, 0.14 , 0.16 ,0.18, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.25, 1.5, 2.0]
+        else:
+            val_list = [0.1, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.25, 1.5, 2.0]
 
+        delta_list = []
+        for val in val_list:
+            delta = abs(val - self.x)
+            delta_list.append(delta)
+        return str(val_list[np.argmin(delta_list)])
+
+    def get_graph_res(self, coef_type):
+
+        if coef_type == 'V':
+            file_name = 'beta_V_values.csv'
+        else:
+            file_name = 'gost_graphs_T.csv'
         graph_res_dict = {
             'beta': (1.0, 1.1, 1.2, 1.25, 1.4, 1.6, 1.7, 1.8, 1.9, 2.2, 2.4, 2.5, 2.6, 3.0, 3.4, 3.7, 4.2, 4.7, 5.0)}
 
@@ -39,22 +56,8 @@ class Approximation:
         return graph_res_dict
 
     def func_fit(self):
+        coeffs = np.polyfit(self.graph_res_dict_T['beta'], self.graph_res_dict_T[self.get_nearest_var()], 8)
+        pred = np.poly1d(coeffs)
+        return pred
 
-        # print(self.x, self.graph_res_dict_T)
-        # print((self.graph_res_dict_T['beta'], self.graph_res_dict_T[self.x]))
-        #
-        #
-        coeffs = np.polyfit(self.graph_res_dict_T['beta'], self.graph_res_dict_T[self.x], 8)
-        print(coeffs)
-        pred = np.polyval(coeffs, self.graph_res_dict_T['beta'])
-
-        plt.plot(self.graph_res_dict_T['beta'], self.graph_res_dict_T[self.x], 'o', label='Исходные данные')
-        plt.plot(self.graph_res_dict_T['beta'], pred, '-', label='Аппроксимация')
-        plt.legend()
-        plt.show()
-
-
-x = Approximation(1, '1')
-x.func_fit()
-# print(x.graph_res_dict_T)
 

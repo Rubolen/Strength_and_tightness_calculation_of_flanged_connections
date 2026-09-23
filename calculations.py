@@ -47,16 +47,20 @@ class Calculations:
     def get_flange_connection_stiffness(self):
 
         if self.flange1.type == 'weld_neck' or 'slip_on':
+            gamma = 1 / (
+                        self.gasket.get_gasket_stiffness() + self.bolt.get_bolt_stiffness() * self.bolt.E20 / self.bolt.E +
+                        (self.flange1.get_angular_flange_compliance() * self.flange1.E20 / self.flange1.E +
+                         self.flange2.get_angular_flange_compliance() * self.flange2.E20 / self.flange2.E) *
+                        self.get_force_moment_arms()[0] ** 2)
 
-            gamma = 1 / (self.gasket.get_gasket_stiffness() + self.bolt.get_bolt_stiffness(self.flange1, self.flange2)*
-                         self.bolt.E_20/self.bolt.E + (y_f1*E1_20/E_1 + y_f2*E2_20/E_2) * b * b)
+        return gamma
 
     # 6 Усилия в болтах(шпильках) фланцевого соединения
     # при затяжке и в рабочих условиях
     def forces_bolt_tension(self, p, F, M):
 
         # 6.1 Суммарная площадь сечения болтов(шпилек)
-        A_b = self.flange.n_r1 * self.bolt.f_b
+        A_b = self.flange1.n_r1 * self.bolt.f_b
 
         # 6.2 Равнодействующая нагрузка от давления
         Q_p = 0.785 * self.gasket.get_gasket_params()[0] * self.gasket.get_gasket_params()[0] * p
@@ -65,6 +69,8 @@ class Calculations:
         Q_FM = (F + 4 * abs(M) / self.gasket.get_gasket_params()[0], F - 4 * abs(M) / self.gasket.get_gasket_params()[0])
 
         # 6.4 Нагрузка, вызванная стесненностью температурных деформаций
-        if self.flange.type == 'weld-neck' or 'slip-on':
-            Q_t = gamma * ((alpha_f * h_1 + alpha_w * h_w) * (t_f - 20) + (alpha_f * h_1 + alpha_w * h_w) * (t_f - 20) -
+        if self.flange.type == '11':
+            Q_t = self.get_flange_connection_stiffness() * ((alpha_f * h_1 + alpha_w * h_w) * (t_f - 20) + (alpha_f * h_1 + alpha_w * h_w) * (t_f - 20) -
                    alpha_b*(h_1 + h_2) * (t_b - 20))
+
+
