@@ -1,6 +1,6 @@
 from db_sqlite3 import DatabaseConnection
 from calculations import Calculations
-from body_units import Gasket, Flange, Bolt
+from body_units import Gasket, Flange, Bolt, Washer
 
 # db = DatabaseConnection()
 # db1 = DatabaseConnection('GOST_33259—2015.db')
@@ -13,14 +13,25 @@ from body_units import Gasket, Flange, Bolt
 #                       )
 #              )
 
-flange1 = Flange('Фланец стальной приварной встык', [50,40])
-flange2 = Flange('Фланец стальной приварной встык', [50,40])
-bolt = Bolt(True, 'bolt', flange1)
-x = Gasket('flat', 'b', 3, flange1)
+flange1 = Flange('Фланец стальной приварной встык', 6, 100, 50,40,)
+flange2 = Flange('Фланец стальной приварной встык', 6, 100, 50,40,)
+bolt = Bolt(True, 'bolt', flange1, 8, 100)
+gasket = Gasket('flat', 'b', 3, flange1)
+washer1 = Washer(bolt,1, [100])
+washer2 = Washer(bolt,1, [100])
 
 
-bolt.get_bolt_stiffness(flange1, flange2)
-#
+
+# bolt.get_bolt_stiffness(flange1, flange2)
+# print(bolt.get_bolt_stiffness(flange1, flange2))
+
+
+calc = Calculations(flange1, flange2, gasket, bolt, washer1, washer2)
+
+
+print(calc.get_flange_connection_stiffness())
+print(calc.forces_bolt_tension(100,100,100))
+
 # print(bolt.f_b)
 # print(gs1.get_gasket_stiffness())
 # calc = Calculations(gasket = gs1)

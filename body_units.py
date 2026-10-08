@@ -5,14 +5,26 @@ from function_approximation import Approximation
 
 db = DatabaseConnection()
 db1 = DatabaseConnection('GOST_33259—2015.db')
-class Flange:
 
-    def __init__(self, type, params = None):
 
+class Part:
+
+    def __init__(self, material_id: int, temperature: int):
+        self.material_id = material_id
+        self.temperature = temperature
+
+
+
+
+class Flange(Part):
+
+    def __init__(self, type: str, material_id: int, temperature: int, dn, pn, params = None):
+
+        super().__init__(material_id, temperature)
         self.type = db.get_element_from_table('flange_types', 'code', ['name_ru'], [type])[0][0]
-
-        self.DN = params[0]
-        self.PN = params[1]
+        self.DN = dn
+        self.PN = pn
+        # self.temperature = params[2]
         if self.type == '11':
             self.D_m = db.get_element_from_table('flange_type11_dimensions', 'Dm_mm', ['dn', 'pn'], [str(self.DN), str(self.PN)])[0][0]
             # self.D_m_r2 = D_m_r2
@@ -34,9 +46,9 @@ class Flange:
             # self.n_r2 = n_r2
             self.Nom_bolt_diam = db.get_element_from_table('flange_type11_dimensions', 'bolt_thread', ['dn', 'pn'], [str(self.DN), str(self.PN)])[0][0]
 
-            self.E20 = db.get_element_from_table('steel_elastic_modulus', 'temp_20', ['id'], [str(6)])[0][0]
+            self.E20 = db.get_element_from_table('steel_elastic_modulus', 'temp_20', ['id'], [str(self.material_id)])[0][0]
 
-            self.E = db.get_element_from_table('steel_elastic_modulus', 'temp_100', ['id'], [str(6)])[0][0]
+            self.E = db.get_element_from_table('steel_elastic_modulus', 'temp_' + str(self.temperature), ['id'], [str(self.material_id)])[0][0]
 
             # self.Nom_bolt_diam_r2 = Nom_bolt_diam_r2
 
@@ -54,7 +66,7 @@ class Flange:
 
             self.x = self.l / self.l0
 
-
+            self.alpha = db.get_element_from_table('linear_expansion_coefficients', 'temp_20_' + str(self.temperature), ['id'], [str(16)])[0][0]
 
 
 
@@ -99,8 +111,8 @@ class Flange:
 
 class Gasket:
 
-    def __init__(self, type:str, execution:str, material_id:int, flange:object):
-        self.type = type
+    def __init__(self, type_obj:str, execution:str, material_id:int, flange:object):
+        self.type = type_obj
         self.execution = execution
         if self.type == 'flat':
             gasket_ids = db.get_element_from_table('gasket_'+ self.execution,'id', ['dn'], [str(flange.DN)])
@@ -116,9 +128,31 @@ class Gasket:
             self.b_g = (self.D_cap - self.d) / 2
             self.q_compress = db.get_element_from_table('gasket_materials', 'q_obzh', ['id'], [str(material_id)])[0][0]
             self.m = db.get_element_from_table('gasket_materials', 'm', ['id'], [str(material_id)])[0][0]
-            self.E_g = db1.get_element_from_table('gasket_materials', 'e_p',['id'],[str(material_id)])[0][0]
-            self.K_compress = db1.get_element_from_table('gasket_materials', 'k_obzh',['id'],[str(material_id)])[0][0]
-            # self.h_g = db1.get_element_from_table('GOST_15180_86_table_4', 'h',['DN', 'PN'], ['40', '1_16'])[0][0]
+            if self.execution == 'a' or 'b' or 'v':
+                if flange.DN < 1400:
+                    self.h_g = 2
+                else:
+                    self.h_g = 3
+            else:
+                self.h_g = db.get_element_from_table('gasket_'+execution, 'thickness_s', ['id'], [str(gasket_id)])[0][0]
+
+            if material_id == 1:
+                self.E_g = 0.3 * 10**(-4) * (1 + self.b_g/ (2 * self.h_g))
+            elif material_id == 2:
+                self.E_g = 0.4 * 10 ** (-4) * (1 + self.b_g / (2 * self.h_g))
+            else:
+                self.E_g = db.get_element_from_table('gasket_materials', 'e_p',['id'],[str(material_id)])[0][0]
+
+
+            self.K_compress = db.get_element_from_table('gasket_materials', 'k_obzh',['id'],[str(material_id)])[0][0]
+
+            if self.execution == 'a' or 'b' or 'v':
+                if flange.DN < 1400:
+                    self.h_g = 2
+                else:
+                    self.h_g = 3
+            else:
+                self.h_g = db.get_element_from_table('gasket_'+ self.execution,'thickness_s', ['dn'], [str(flange.DN)])[0][0]
 
 
     def get_gasket_params(self):
@@ -141,13 +175,14 @@ class Gasket:
 
     def get_gasket_stiffness(self):
         # Податливость прокладки ( для металических и асбометаллических y_g = 0 )
-        y_g = (self.h_g * self.K_compress) / (self.E_g * math.pi * self.get_gasket_params()[0] * self.b_g)
+        y_g = (self.h_g * self.K_compress) / (float(self.E_g) * math.pi * self.get_gasket_params()[0] * self.b_g)
         return y_g
 
 
-class Bolt:
+class Bolt(Part):
 
-    def __init__(self, isgrooved, type, flange1):
+    def __init__(self, isgrooved, type, flange1, material_id, temperature):
+        super().__init__(material_id, temperature)
         self.isgrooved = isgrooved
         self.type = type
         self.diam = flange1.Nom_bolt_diam
@@ -155,12 +190,14 @@ class Bolt:
         self.E20 = db1.get_element_from_table('GOST_34233_4_2017_table_г1', '[25X1МФ]',
                                              ['[Расчетная температура болтов (шпилек)]'], ['20'])[0][0]
         self.E = db1.get_element_from_table('GOST_34233_4_2017_table_г1', '[25X1МФ]',
-                                             ['[Расчетная температура болтов (шпилек)]'], ['100'])[0][0]
+                                             ['[Расчетная температура болтов (шпилек)]'], [str(self.temperature)])[0][0]
         if self.isgrooved == True:
             self.f_b = db.get_element_from_table('Areas_of_bolts', self.diam, ['ID'], ['1'])[0][0]
         else:
             self.f_b = db.get_element_from_table('Areas_of_bolts', self.diam, ['ID'], ['0'])[0][0]
 
+        self.alpha = db.get_element_from_table('linear_expansion_coefficients', 'temp_20_' + str(self.temperature), ['id'],
+                                  [str(material_id)])[0][0]
 
     def get_distance_between_the_bearing_surfaces(self, flange1, flange2):
         if flange1.type == '11' and flange2.type == '11':
@@ -177,5 +214,20 @@ class Bolt:
         y_b = L_b / (self.E20 * self.f_b * self.n)
 
         return y_b
+
+
+class Washer:
+
+    def __init__(self, bolt, material_id:int,  params = None):
+
+        self.d1 = db.get_element_from_table('gost_1371_78', 'd1_a', ['d_thread'], [str(bolt.diam)])[0][0]
+        self.d2 = db.get_element_from_table('gost_1371_78', 'd1', ['d_thread'], [str(bolt.diam)])[0][0]
+        self.s = db.get_element_from_table('gost_1371_78', 's', ['d_thread'], [str(bolt.diam)])[0][0]
+        self.temperature = params[0]
+        self.alpha = db.get_element_from_table('linear_expansion_coefficients', 'temp_20_' + str(self.temperature), ['id'], [str(material_id)])[0][0]
+
+
+
+
 
 

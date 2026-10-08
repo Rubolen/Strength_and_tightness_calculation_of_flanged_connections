@@ -3,18 +3,31 @@ from logging import raiseExceptions
 
 
 class DatabaseConnection:
+
+
     def __init__(self, db_name='gost_pipe_db.sqlite'):
         self.conn = sqlite3.connect(db_name)
         self.cursor = self.conn.cursor()
 
-        # self.cursor.execute('''
-        #
-        #          ''')
-        # self.conn.commit()
+#         self.cursor.execute('''
+#
+# UPDATE gasket_materials
+# SET e_p = '0.3*10**(-4)*(1 + b_n / 2h_n)'
+# WHERE id = 1;
+#
+#
+#      ''')
+#         self.conn.commit()
 
 
 
-#         self.cursor.execute(''' CREATE TABLE IF NOT EXISTS steel_elastic_modulus (
+
+
+
+
+
+
+        # self.cursor.execute(''' CREATE TABLE IF NOT EXISTS steel_elastic_modulus (
 #                                 id INTEGER PRIMARY KEY AUTOINCREMENT,
 #                                 steel_grade TEXT NOT NULL,
 #                                 temp_20 REAL,
