@@ -80,13 +80,13 @@ class Calculations:
 
         if self.flange1.type == '11':
             alpha_m = ((self.bolt.get_bolt_compliance(self.flange1, self.flange2) +
-                       2 * self.flange1.getangular_flange_compliance_ext_bend_moment(self.flange1.D_1, self.flange1.capD,  self.flange1.E20) *
+                       2 * self.flange1.get_angular_flange_compliance_ext_bend_moment(self.flange1.D_1, self.flange1.capD,  self.flange1.E20) *
                        self.get_force_moment_arms(self.flange1, self.gasket)[0] * (self.get_force_moment_arms(self.flange1, self.gasket)[0] +
                                                                                    self.get_force_moment_arms(self.flange1, self.gasket)[1]) -
                        (self.get_force_moment_arms(self.flange1, self.gasket)[0]**2) / self.gasket.get_gasket_params()[0]) /
                        ((self.bolt.get_bolt_compliance(self.flange1, self.flange2)) + self.gasket.get_gasket_compliance() *
                         ((self.flange1.D_1 / self.gasket.get_gasket_params()[0])**2) +
-                        2 * self.flange1.getangular_flange_compliance_ext_bend_moment(self.flange1.D_1, self.flange1.capD,  self.flange1.E20) *
+                        2 * self.flange1.get_angular_flange_compliance_ext_bend_moment(self.flange1.D_1, self.flange1.capD,  self.flange1.E20) *
                         self.get_force_moment_arms(self.flange1, self.gasket)[0]))
             return alpha_m
 
@@ -144,6 +144,6 @@ class Calculations:
                (4.0 * (1 - self.get_stiffness_coefficient_flanged_connection_moment()) * abs(M)) /
                (self.gasket.get_gasket_params()[0]))
 
-        return A_b, Q_p, Q_FM, float(Q_t), Pbm, Pbp
+        return A_b, Q_p, Q_FM, float(Q_t), float(Pbm), float(Pbp)
 
 

@@ -208,7 +208,6 @@ class Bolt(Part):
         self.allowable_bolt_stress = db.get_element_from_table('nominal_allowable_stresses', 'mat_' + str(allowable_bolt_stress_mapping), ['temperature'],
                                   [str(self.temperature)])[0][0]
 
-        print(allowable_bolt_stress_mapping)
 
 
     def get_distance_between_the_bearing_surfaces(self, flange1, flange2):

@@ -29,8 +29,8 @@ washer2 = Washer(bolt,1, 100)
 calc = Calculations(flange1, flange2, gasket, bolt, washer1, washer2)
 
 
-print(calc.get_flange_connection_stiffness())
-# print(calc.forces_bolt_tension(100,100,100))
+# print(calc.get_flange_connection_stiffness())
+print(calc.forces_bolt_tension(100,100,100))
 
 
 
