@@ -9,15 +9,12 @@ class DatabaseConnection:
         self.conn = sqlite3.connect(db_name)
         self.cursor = self.conn.cursor()
 
-#         self.cursor.execute('''
-#
-# UPDATE gasket_materials
-# SET e_p = '0.3*10**(-4)*(1 + b_n / 2h_n)'
-# WHERE id = 1;
-#
-#
-#      ''')
-#         self.conn.commit()
+        # self.cursor.execute('''
+        #
+        #
+        #                     ''')
+        #
+        # self.conn.commit()
 
 
 

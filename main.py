@@ -17,8 +17,8 @@ flange1 = Flange('Фланец стальной приварной встык', 
 flange2 = Flange('Фланец стальной приварной встык', 6, 100, 50,40,)
 bolt = Bolt(True, 'bolt', flange1, 8, 100)
 gasket = Gasket('flat', 'b', 3, flange1)
-washer1 = Washer(bolt,1, [100])
-washer2 = Washer(bolt,1, [100])
+washer1 = Washer(bolt,1,100, )
+washer2 = Washer(bolt,1, 100)
 
 
 
@@ -30,7 +30,9 @@ calc = Calculations(flange1, flange2, gasket, bolt, washer1, washer2)
 
 
 print(calc.get_flange_connection_stiffness())
-print(calc.forces_bolt_tension(100,100,100))
+# print(calc.forces_bolt_tension(100,100,100))
+
+
 
 # print(bolt.f_b)
 # print(gs1.get_gasket_stiffness())

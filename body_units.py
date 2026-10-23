@@ -37,8 +37,10 @@ class Flange(Part):
             self.H = db.get_element_from_table('flange_type11_dimensions', 'H_mm', ['dn', 'pn'], [str(self.DN), str(self.PN)])[0][0]
             # self.H_r2 = H_r2
             # self.H_1 = H_1
+            #Наружный диаметр фланца (D_н)
             self.capD = db.get_element_from_table('flange_type11_dimensions', 'D_mm', ['dn', 'pn'], [str(self.DN), str(self.PN)])[0][0]
             # self.capD_r2 = capD_r2
+            #Диаметр окружности расположения болтов (D_б)
             self.D_1 = db.get_element_from_table('flange_type11_dimensions', 'D1_mm', ['dn', 'pn'], [str(self.DN), str(self.PN)])[0][0]
             self.d = db.get_element_from_table('flange_type11_dimensions', 'bolt_hole_d_mm', ['dn', 'pn'], [str(self.DN), str(self.PN)])[0][0]
             # self.d_r2 = d_r2
@@ -90,7 +92,7 @@ class Flange(Part):
         return lambd
 
 
-    #Угловая податливость фланца при затяжке
+    #Угловая податливость фланца при затяжке (y_ф)
     def get_angular_flange_compliance(self):
         return 0.91 * self.get_flange_plate_coefficients()[5] / (self.E20 * self.get_lambda_coef() * self.S_0 * self.S_0 * self.l0)
 
@@ -100,7 +102,8 @@ class Flange(Part):
     # def get_angular_loose_flange_ring_compliance(self):
     #     return
 
-    def get_get_angular_flange_compliance_ext_bend_moment(self, D1, D2, E):
+    #Угловая податливость фланца, нагруженного внешним изгибающим моментом (y_ф.н)
+    def get_angular_flange_compliance_ext_bend_moment(self, D1, D2, E):
         y_fn = ((math.pi / 4)**3) * D1 / (E * D2 * self.b**3)
         return y_fn
 
@@ -154,7 +157,7 @@ class Gasket:
             else:
                 self.h_g = db.get_element_from_table('gasket_'+ self.execution,'thickness_s', ['dn'], [str(flange.DN)])[0][0]
 
-
+    #Эффективная ширина и расчетный диаметр прокладки
     def get_gasket_params(self):
         if self.type == 'flat':
             if self.b_g >= 15:
@@ -173,7 +176,7 @@ class Gasket:
         return D_mg, b_0
 
 
-    def get_gasket_stiffness(self):
+    def get_gasket_compliance(self):
         # Податливость прокладки ( для металических и асбометаллических y_g = 0 )
         y_g = (self.h_g * self.K_compress) / (float(self.E_g) * math.pi * self.get_gasket_params()[0] * self.b_g)
         return y_g
@@ -181,7 +184,7 @@ class Gasket:
 
 class Bolt(Part):
 
-    def __init__(self, isgrooved, type, flange1, material_id, temperature):
+    def __init__(self, isgrooved: bool, type: str, flange1: object, material_id: int, temperature: int):
         super().__init__(material_id, temperature)
         self.isgrooved = isgrooved
         self.type = type
@@ -199,13 +202,22 @@ class Bolt(Part):
         self.alpha = db.get_element_from_table('linear_expansion_coefficients', 'temp_20_' + str(self.temperature), ['id'],
                                   [str(material_id)])[0][0]
 
+        allowable_bolt_stress_mapping =  int(db.get_element_from_table('materials_bolts', 'mapping_nominal_allowable_stresses', ['id'],
+                                  [str(self.material_id)])[0][0])
+
+        self.allowable_bolt_stress = db.get_element_from_table('nominal_allowable_stresses', 'mat_' + str(allowable_bolt_stress_mapping), ['temperature'],
+                                  [str(self.temperature)])[0][0]
+
+        print(allowable_bolt_stress_mapping)
+
+
     def get_distance_between_the_bearing_surfaces(self, flange1, flange2):
         if flange1.type == '11' and flange2.type == '11':
             L_b0 = flange1.b + flange2.b
 
         return L_b0
 
-    def get_bolt_stiffness(self, flange1, flange2):
+    def get_bolt_compliance(self, flange1, flange2):
         if self.type == 'bolt':
             L_b = self.get_distance_between_the_bearing_surfaces(flange1, flange2) + 0.28 * int(self.diam[1:])
         elif self.type == 'pin':
@@ -216,14 +228,13 @@ class Bolt(Part):
         return y_b
 
 
-class Washer:
+class Washer(Part):
 
-    def __init__(self, bolt, material_id:int,  params = None):
-
+    def __init__(self, bolt, material_id: int, temperature: int,  params = None):
+        super().__init__(material_id, temperature)
         self.d1 = db.get_element_from_table('gost_1371_78', 'd1_a', ['d_thread'], [str(bolt.diam)])[0][0]
         self.d2 = db.get_element_from_table('gost_1371_78', 'd1', ['d_thread'], [str(bolt.diam)])[0][0]
         self.s = db.get_element_from_table('gost_1371_78', 's', ['d_thread'], [str(bolt.diam)])[0][0]
-        self.temperature = params[0]
         self.alpha = db.get_element_from_table('linear_expansion_coefficients', 'temp_20_' + str(self.temperature), ['id'], [str(material_id)])[0][0]
 
 
